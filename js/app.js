@@ -110,7 +110,7 @@ function renderProductCard(product) {
             <p class="description" style="display: none;">${product.description}</p>
             <div class="product-actions">
                 <button class="btn btn-primary" onclick="addToCart('${product.id}')">Add to Cart</button>
-                <button class="btn btn-outline-primary" onclick="toggleDescription(this)">View More</button>
+                <a href="pages/product.html?id=${product.id}" class="btn btn-outline-primary">View More</a>
             </div>
         </div>
     `;
