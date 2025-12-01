@@ -1,0 +1,128 @@
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="fas fa-sign-in-alt me-2"></i>Login</h2>
+            <p>Welcome back! Please sign in to your account.</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/login" method="POST" class="auth-form">
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user me-1"></i>Username
+                </label>
+                <input type="text" class="form-control" id="username" name="username"
+                       value="<%= formData.username || '' %>" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock me-1"></i>Password
+                </label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account?
+                <a href="/register" class="text-primary">Create one here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.auth-header p {
+    color: #666;
+    margin: 0;
+}
+
+.auth-form .form-label {
+    font-weight: 500;
+    color: #333;
+}
+
+.auth-form .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.auth-form .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.auth-footer p {
+    color: #666;
+    margin: 0;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+</style>
