@@ -462,8 +462,9 @@ function setupEventListeners() {
 // Initialize page-specific functionality
 function initializePage() {
     const path = window.location.pathname;
+    console.log('Current path:', path);
 
-    if (path.includes('men.html')) {
+    if (path.includes('/men.html')) {
         // Remove any existing filter elements
         const categoryFilter = document.getElementById('category-filter');
         const sortSelect = document.getElementById('sort');
@@ -478,7 +479,7 @@ function initializePage() {
         console.log('Men products:', menProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
 
         renderProducts(document.getElementById('product-grid'), p => p.category === 'Men');
-    } else if (path.includes('women.html')) {
+    } else if (path.includes('/women.html')) {
         // Remove any existing filter elements
         const categoryFilter = document.getElementById('category-filter');
         const sortSelect = document.getElementById('sort');
