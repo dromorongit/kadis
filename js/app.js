@@ -15,12 +15,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Load products from API
 async function loadProducts() {
     try {
-        const response = await fetch('https://kadiscollectionz-production.up.railway.app/api/products');
-        products = await response.json();
-        console.log(`Loaded ${products.length} products from API`);
+        const response = await fetch('https://kadis-production.up.railway.app/api/products');
+        if (response.ok) {
+            products = await response.json();
+            console.log(`Loaded ${products.length} products from API`);
+            console.log('Sample products:', products.slice(0, 3).map(p => ({ id: p.id, title: p.title, category: p.category })));
+        } else {
+            throw new Error(`API responded with status ${response.status}`);
+        }
     } catch (error) {
         console.error('Error loading products from API:', error);
         products = [];
+        // Show user-friendly error message
+        const productGrids = document.querySelectorAll('.product-grid');
+        productGrids.forEach(grid => {
+            grid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Unable to load products. Please try again later.</p>';
+        });
     }
 }
 
@@ -172,7 +182,7 @@ async function loadProductDetail() {
     // If not found in loaded products, try to fetch from API
     if (!product) {
         try {
-            const response = await fetch(`https://kadiscollectionz-production.up.railway.app/api/products/${productId}`);
+            const response = await fetch(`https://kadis-production.up.railway.app/api/products/${productId}`);
             if (response.ok) {
                 product = await response.json();
             }
@@ -343,7 +353,7 @@ function submitOrder(event) {
 
 async function saveOrder(order) {
     try {
-        const response = await fetch('https://kadiscollectionz-production.up.railway.app/api/orders', {
+        const response = await fetch('https://kadis-production.up.railway.app/api/orders', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -463,6 +473,10 @@ function initializePage() {
         if (sortSelect) sortSelect.remove();
         filterElements.forEach(filter => filter.remove());
         
+        const menProducts = products.filter(p => p.category && p.category.toLowerCase() === 'men');
+        console.log(`Men page: Found ${menProducts.length} men products out of ${products.length} total`);
+        console.log('Men products:', menProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
+
         renderProducts(document.getElementById('product-grid'), p => p.category && p.category.toLowerCase() === 'men');
     } else if (path.includes('women.html')) {
         // Remove any existing filter elements

@@ -135,6 +135,8 @@ router.post('/', upload.array('images', 10), [
     const product = new Product(productData);
     await product.save();
 
+    console.log('Product created:', { id: product.id, title: product.title, category: product.category });
+
     req.session.success = 'Product created successfully';
     res.redirect('/products');
   } catch (error) {
