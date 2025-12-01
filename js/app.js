@@ -464,37 +464,7 @@ function initializePage() {
     const path = window.location.pathname;
     console.log('Current path:', path);
 
-    if (path.endsWith('men.html')) {
-        // Remove any existing filter elements
-        const categoryFilter = document.getElementById('category-filter');
-        const sortSelect = document.getElementById('sort');
-        const filterElements = document.querySelectorAll('.filters');
-        
-        if (categoryFilter) categoryFilter.remove();
-        if (sortSelect) sortSelect.remove();
-        filterElements.forEach(filter => filter.remove());
-        
-        const menProducts = products.filter(p => p.category === 'Men');
-        console.log(`Men page: Found ${menProducts.length} men products out of ${products.length} total`);
-        console.log('Men products:', menProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
-
-        renderProducts(document.getElementById('product-grid'), p => p.category === 'Men');
-    } else if (path.endsWith('women.html')) {
-        // Remove any existing filter elements
-        const categoryFilter = document.getElementById('category-filter');
-        const sortSelect = document.getElementById('sort');
-        const filterElements = document.querySelectorAll('.filters');
-        
-        if (categoryFilter) categoryFilter.remove();
-        if (sortSelect) sortSelect.remove();
-        filterElements.forEach(filter => filter.remove());
-        
-        const womenProducts = products.filter(p => p.category === 'Women');
-        console.log(`Women page: Found ${womenProducts.length} women products out of ${products.length} total`);
-        console.log('Women products:', womenProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
-
-        renderProducts(document.getElementById('product-grid'), p => p.category === 'Women');
-    } else if (path.includes('product.html')) {
+    if (path.includes('product.html')) {
         loadProductDetail();
     } else if (path.includes('cart.html')) {
         renderCart();
@@ -503,8 +473,8 @@ function initializePage() {
     } else if (path.includes('order-confirmation.html')) {
         loadOrderConfirmation();
     } else if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
-        // Home page - load featured products
-        renderProducts(document.getElementById('featured-grid'), p => p.featured);
+        // Home page - load all products
+        renderProducts(document.getElementById('featured-grid'), null);
     }
 }
 
