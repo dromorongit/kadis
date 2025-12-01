@@ -37,7 +37,7 @@ router.get('/products', async (req, res) => {
       price: product.price,
       old_price: product.oldPrice,
       currency: '₵',
-      images: product.images.map(img => `https://kadiscollectionz-production.up.railway.app${img}`),
+      images: product.images.map(img => img.startsWith('http') ? img : `${process.env.BASE_URL}${img}`),
       description: product.longDescription, // Frontend expects 'description'
       shortDescription: product.shortDescription,
       sizes: product.sizes,
@@ -81,7 +81,7 @@ router.get('/products/:id', async (req, res) => {
       price: product.price,
       old_price: product.oldPrice,
       currency: '₵',
-      images: product.images.map(img => `https://kadiscollectionz-production.up.railway.app${img}`),
+      images: product.images.map(img => img.startsWith('http') ? img : `${process.env.BASE_URL}${img}`),
       description: product.longDescription,
       shortDescription: product.shortDescription,
       sizes: product.sizes,
