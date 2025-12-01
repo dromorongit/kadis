@@ -473,11 +473,11 @@ function initializePage() {
         if (sortSelect) sortSelect.remove();
         filterElements.forEach(filter => filter.remove());
         
-        const menProducts = products.filter(p => p.category && p.category.toLowerCase() === 'men');
+        const menProducts = products.filter(p => p.category === 'Men');
         console.log(`Men page: Found ${menProducts.length} men products out of ${products.length} total`);
         console.log('Men products:', menProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
 
-        renderProducts(document.getElementById('product-grid'), p => p.category && p.category.toLowerCase() === 'men');
+        renderProducts(document.getElementById('product-grid'), p => p.category === 'Men');
     } else if (path.includes('women.html')) {
         // Remove any existing filter elements
         const categoryFilter = document.getElementById('category-filter');
@@ -488,7 +488,11 @@ function initializePage() {
         if (sortSelect) sortSelect.remove();
         filterElements.forEach(filter => filter.remove());
         
-        renderProducts(document.getElementById('product-grid'), p => p.category && p.category.toLowerCase() === 'women');
+        const womenProducts = products.filter(p => p.category === 'Women');
+        console.log(`Women page: Found ${womenProducts.length} women products out of ${products.length} total`);
+        console.log('Women products:', womenProducts.map(p => ({ id: p.id, title: p.title, category: p.category })));
+
+        renderProducts(document.getElementById('product-grid'), p => p.category === 'Women');
     } else if (path.includes('product.html')) {
         loadProductDetail();
     } else if (path.includes('cart.html')) {
