@@ -197,6 +197,32 @@ router.put('/:id', upload.array('images', 10), [
       });
     }
 
+    // Get current product to access old images
+    const currentProduct = await Product.findOne({ id: req.params.id });
+    if (!currentProduct) {
+      return res.status(404).render('error', {
+        title: 'Not Found',
+        message: 'Product not found',
+        error: {}
+      });
+    }
+
+    // Delete old images if new ones are being uploaded
+    if (req.files && req.files.length > 0 && currentProduct.images && currentProduct.images.length > 0) {
+      for (const imageUrl of currentProduct.images) {
+        try {
+          const filename = path.basename(imageUrl);
+          const filePath = path.join(uploadsDir, filename);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Deleted old image:', filename);
+          }
+        } catch (error) {
+          console.error('Error deleting old image:', error);
+        }
+      }
+    }
+
     const productData = {
       ...req.body,
       sizes: req.body.sizes ? req.body.sizes.split(',').map(s => s.trim()) : [],

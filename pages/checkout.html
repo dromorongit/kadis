@@ -61,12 +61,27 @@
                         </div>
                     </div>
                     <div class="checkout-form-section">
+                        <h2>Shipping Method</h2>
+                        <div class="form-group">
+                            <label for="shipping">Select Location <span class="text-danger">*</span></label>
+                            <select id="shipping" name="shipping" required>
+                                <option value="accra-30">Within Accra - GHS 30</option>
+                                <option value="dodowa-50">Dodowa - GHS 50</option>
+                                <option value="mallam-50">Location from Mallam - GHS 50</option>
+                                <option value="pokuase-50">Location from Pokuase - GHS 50</option>
+                                <option value="tema-50">Tema, Ashaiman, Katamanso, Kpone (Delivery fee for items to Tema & beyond) - GHS 50</option>
+                                <option value="outside-65">Outside Greater Accra (Delivery fee for items outside Greater Accra) - GHS 65</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="checkout-form-section">
                         <h2>Payment Method</h2>
                         <div class="form-group">
                             <label for="payment">Payment Method</label>
                             <select id="payment" name="payment" required>
                                 <option value="cash">Cash on Delivery</option>
                             </select>
+                            <small class="form-text">Payment Must Be Made Always Before Delivery is made Outside Greater Accra</small>
                         </div>
                     </div>
                     <div class="checkout-form-section">

@@ -297,7 +297,41 @@ function loadCheckout() {
     if (!orderSummary) return;
 
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const shipping = subtotal > 100 ? 0 : 10;
+    const shipping = calculateShippingFee();
+    const total = subtotal + shipping;
+
+    orderSummary.innerHTML = `
+        <h2>Order Summary</h2>
+        ${cart.map(item => `
+            <p>${item.title} (${item.quantity}) - ₵${(item.price * item.quantity).toFixed(2)}</p>
+        `).join('')}
+        <p><strong>Subtotal: ₵${subtotal.toFixed(2)}</strong></p>
+        <p><strong>Shipping: ₵${shipping.toFixed(2)}</strong></p>
+        <p><strong>Total: ₵${total.toFixed(2)}</strong></p>
+    `;
+
+    // Add event listener for shipping method changes
+    const shippingSelect = document.getElementById('shipping');
+    if (shippingSelect) {
+        shippingSelect.addEventListener('change', updateOrderSummary);
+    }
+}
+
+function calculateShippingFee() {
+    const shippingSelect = document.getElementById('shipping');
+    if (!shippingSelect || !shippingSelect.value) return 0;
+
+    const shippingValue = shippingSelect.value;
+    const fee = shippingValue.split('-')[1];
+    return parseInt(fee) || 0;
+}
+
+function updateOrderSummary() {
+    const orderSummary = document.getElementById('order-summary');
+    if (!orderSummary) return;
+
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const shipping = calculateShippingFee();
     const total = subtotal + shipping;
 
     orderSummary.innerHTML = `
@@ -315,6 +349,10 @@ function submitOrder(event) {
     event.preventDefault();
 
     const formData = new FormData(event.target);
+    const shippingFee = calculateShippingFee();
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const total = subtotal + shippingFee;
+
     const order = {
         order_id: Date.now().toString(),
         customer: {
@@ -323,6 +361,7 @@ function submitOrder(event) {
             email: formData.get('email') || null,
             address: formData.get('address')
         },
+        shipping_method: formData.get('shipping'),
         items: cart.map(item => ({
             product_id: item.id,
             title: item.title,
@@ -330,9 +369,9 @@ function submitOrder(event) {
             quantity: item.quantity,
             variant: item.size
         })),
-        subtotal: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
-        shipping: cart.reduce((total, item) => total + (item.price * item.quantity), 0) > 100 ? 0 : 10,
-        total: cart.reduce((total, item) => total + (item.price * item.quantity), 0) + (cart.reduce((total, item) => total + (item.price * item.quantity), 0) > 100 ? 0 : 10),
+        subtotal: subtotal,
+        shipping: shippingFee,
+        total: total,
         payment_method: formData.get('payment'),
         timestamp: new Date().toISOString()
     };
@@ -383,10 +422,13 @@ Order ID: ${order.order_id}
 Customer: ${order.customer.name}
 Phone: ${order.customer.phone}
 Address: ${order.customer.address}
+Shipping Method: ${order.shipping_method}
 
 Items:
 ${order.items.map(item => `- ${item.title} (${item.quantity}) - ₵${item.price}`).join('\n')}
 
+Subtotal: ₵${order.subtotal}
+Shipping: ₵${order.shipping}
 Total: ₵${order.total}
 Payment: ${order.payment_method}`);
 
