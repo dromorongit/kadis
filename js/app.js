@@ -53,6 +53,24 @@ function updateCartCount() {
     cartCountElements.forEach(el => el.textContent = count);
 }
 
+function sendProductWhatsAppMessage(product, quantity = 1, size = null) {
+    const sizeText = size ? ` (Size: ${size})` : '';
+    const message = encodeURIComponent(`New Product Inquiry from Kadi's Collectionz!
+
+Product: ${product.title}
+Price: ₵${product.price}
+Quantity: ${quantity}${sizeText}
+
+${product.shortDescription ? `Description: ${product.shortDescription}` : ''}
+
+${product.description ? `Details: ${product.description}` : ''}
+
+Please let me know if this product is available and how I can proceed with the purchase. Thank you!`);
+
+    const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+}
+
 function addToCart(productId, quantity = 1, size = null) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -72,6 +90,9 @@ function addToCart(productId, quantity = 1, size = null) {
     }
     saveCart();
     showNotification('Product added to cart!');
+    
+    // Send WhatsApp message with product details
+    sendProductWhatsAppMessage(product, quantity, size);
 }
 
 function removeFromCart(index) {
