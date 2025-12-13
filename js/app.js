@@ -1,7 +1,7 @@
 // Global variables
 let products = [];
 let cart = [];
-const OWNER_WHATSAPP_NUMBER = 'message/2KV6Z5Z43ZKBH1'; // WhatsApp message link
+const OWNER_WHATSAPP_NUMBER = '2330538380937'; // WhatsApp Business phone number
 
 // DOM ready
 document.addEventListener('DOMContentLoaded', async function() {
