@@ -55,17 +55,7 @@ function updateCartCount() {
 
 function sendProductWhatsAppMessage(product, quantity = 1, size = null) {
     const sizeText = size ? ` (Size: ${size})` : '';
-    const message = encodeURIComponent(`New Product Inquiry from Kadi's Collectionz!
-
-Product: ${product.title}
-Price: ₵${product.price}
-Quantity: ${quantity}${sizeText}
-
-${product.shortDescription ? `Description: ${product.shortDescription}` : ''}
-
-${product.description ? `Details: ${product.description}` : ''}
-
-Please let me know if this product is available and how I can proceed with the purchase. Thank you!`);
+    const message = encodeURIComponent(`Hi! I want to buy: ${product.title}${sizeText} - ₵${product.price} (Qty: ${quantity})`);
 
     const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${message}`;
     window.open(whatsappUrl, '_blank');
