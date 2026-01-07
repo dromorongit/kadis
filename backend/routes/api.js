@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const cloudinary = require('../config/cloudinary');
+const crypto = require('crypto');
 
 // GET /api/products - Get all products for frontend
 router.get('/products', async (req, res) => {
@@ -121,6 +123,31 @@ router.post('/orders', async (req, res) => {
   } catch (error) {
     console.error('Order creation error:', error);
     res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+// GET /api/cloudinary/signature - Get Cloudinary signature for secure uploads
+router.get('/cloudinary/signature', (req, res) => {
+  try {
+    const timestamp = Math.round((new Date()).getTime() / 1000);
+    const folder = 'kadis-products';
+    
+    // Create signature
+    const signature = cloudinary.utils.api_sign_request({
+      timestamp: timestamp,
+      folder: folder
+    }, process.env.CLOUDINARY_API_SECRET);
+    
+    res.json({
+      signature: signature,
+      timestamp: timestamp,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      folder: folder
+    });
+  } catch (error) {
+    console.error('Cloudinary signature error:', error);
+    res.status(500).json({ error: 'Failed to generate signature' });
   }
 });
 

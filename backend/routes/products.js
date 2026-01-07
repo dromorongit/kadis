@@ -3,38 +3,40 @@ const router = express.Router();
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const Product = require('../models/Product');
 const { body, validationResult } = require('express-validator');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Helper function to upload image to Cloudinary
+async function uploadToCloudinary(base64Data, publicId) {
+  try {
+    const result = await cloudinary.uploader.upload(base64Data, {
+      folder: 'kadis-products',
+      public_id: publicId,
+      resource_type: 'image',
+      transformation: [
+        { quality: 'auto:best' },
+        { fetch_format: 'auto' }
+      ]
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw error;
+  }
 }
 
-// Multer configuration for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'), false);
+// Helper function to delete image from Cloudinary
+async function deleteFromCloudinary(imageUrl) {
+  try {
+    // Extract public_id from URL
+    const matches = imageUrl.match(/\/v\d+\/([^\/]+)\./);
+    if (matches) {
+      const publicId = `kadis-products/${matches[1]}`;
+      await cloudinary.uploader.destroy(publicId);
     }
+  } catch (error) {
+    console.error('Cloudinary delete error:', error);
   }
-});
+}
 
 // Apply authentication middleware
 router.use(requireAuth);
@@ -90,7 +92,7 @@ router.get('/new', (req, res) => {
 });
 
 // POST /products - Create new product
-router.post('/', upload.array('images', 10), [
+router.post('/', [
   body('id').trim().notEmpty().withMessage('Product ID is required'),
   body('title').trim().notEmpty().withMessage('Title is required'),
   body('shortDescription').trim().notEmpty().withMessage('Short description is required'),
@@ -119,11 +121,31 @@ router.post('/', upload.array('images', 10), [
       });
     }
 
+    // Handle image uploads from Cloudinary widget (base64 data URLs)
+    let images = [];
+    if (req.body.imageUrls && Array.isArray(req.body.imageUrls)) {
+      // Use image URLs from Cloudinary widget
+      images = req.body.imageUrls.filter(url => url.trim() && url.startsWith('https://'));
+    } else if (req.body.imageData && Array.isArray(req.body.imageData)) {
+      // Upload base64 images to Cloudinary
+      for (const base64Data of req.body.imageData) {
+        if (base64Data && base64Data.startsWith('data:')) {
+          try {
+            const publicId = `product-${req.body.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const imageUrl = await uploadToCloudinary(base64Data, publicId);
+            images.push(imageUrl);
+          } catch (error) {
+            console.error('Error uploading image:', error);
+          }
+        }
+      }
+    }
+
     const productData = {
       ...req.body,
       sizes: req.body.sizes ? req.body.sizes.split(',').map(s => s.trim()) : [],
       tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim().toLowerCase()) : [],
-      images: req.files ? req.files.map(file => process.env.BASE_URL + '/uploads/' + file.filename) : [],
+      images: images,
       promoPrice: req.body.promoPrice || null,
       oldPrice: req.body.oldPrice || null,
       isPromoActive: req.body.isPromoActive === 'on',
@@ -179,7 +201,7 @@ router.get('/:id/edit', async (req, res) => {
 });
 
 // PUT /products/:id - Update product
-router.put('/:id', upload.array('images', 10), [
+router.put('/:id', [
   body('title').trim().notEmpty().withMessage('Title is required'),
   body('shortDescription').trim().notEmpty().withMessage('Short description is required'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
@@ -207,19 +229,43 @@ router.put('/:id', upload.array('images', 10), [
       });
     }
 
-    // Delete old images if new ones are being uploaded
-    if (req.files && req.files.length > 0 && currentProduct.images && currentProduct.images.length > 0) {
-      for (const imageUrl of currentProduct.images) {
-        try {
-          const filename = path.basename(imageUrl);
-          const filePath = path.join(uploadsDir, filename);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-            console.log('Deleted old image:', filename);
-          }
-        } catch (error) {
-          console.error('Error deleting old image:', error);
+    // Handle image updates
+    let images = currentProduct.images;
+    
+    // Check if new images are being uploaded from Cloudinary widget
+    if (req.body.imageUrls && Array.isArray(req.body.imageUrls)) {
+      // Delete old images from Cloudinary
+      if (currentProduct.images && currentProduct.images.length > 0) {
+        for (const imageUrl of currentProduct.images) {
+          await deleteFromCloudinary(imageUrl);
         }
+      }
+      // Use new image URLs from Cloudinary widget
+      images = req.body.imageUrls.filter(url => url.trim() && url.startsWith('https://'));
+    } else if (req.body.imageData && Array.isArray(req.body.imageData)) {
+      // Upload new base64 images to Cloudinary
+      const newImages = [];
+      for (const base64Data of req.body.imageData) {
+        if (base64Data && base64Data.startsWith('data:')) {
+          try {
+            const publicId = `product-${req.params.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const imageUrl = await uploadToCloudinary(base64Data, publicId);
+            newImages.push(imageUrl);
+          } catch (error) {
+            console.error('Error uploading image:', error);
+          }
+        }
+      }
+      
+      // Only replace if new images were uploaded successfully
+      if (newImages.length > 0) {
+        // Delete old images from Cloudinary
+        if (currentProduct.images && currentProduct.images.length > 0) {
+          for (const imageUrl of currentProduct.images) {
+            await deleteFromCloudinary(imageUrl);
+          }
+        }
+        images = newImages;
       }
     }
 
@@ -227,7 +273,7 @@ router.put('/:id', upload.array('images', 10), [
       ...req.body,
       sizes: req.body.sizes ? req.body.sizes.split(',').map(s => s.trim()) : [],
       tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim().toLowerCase()) : [],
-      images: req.files && req.files.length > 0 ? req.files.map(file => process.env.BASE_URL + '/uploads/' + file.filename) : product.images,
+      images: images,
       promoPrice: req.body.promoPrice || null,
       oldPrice: req.body.oldPrice || null,
       isPromoActive: req.body.isPromoActive === 'on',

@@ -20,7 +20,7 @@
     </div>
 <% } %>
 
-<form action="/products" method="POST" enctype="multipart/form-data" class="product-form">
+<form action="/products" method="POST" enctype="multipart/form-data" class="product-form" id="product-form">
     <div class="row">
         <!-- Basic Information -->
         <div class="col-lg-8">
@@ -198,9 +198,17 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="images" class="form-label">Product Images</label>
-                        <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
-                        <div class="form-text">Select multiple images (first image is main image, max 10 images, 5MB each)</div>
+                        <label class="form-label">Product Images</label>
+                        <button type="button" class="btn btn-outline-primary" id="upload-widget">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload Images
+                        </button>
+                        <div class="form-text">Click to upload images (first image is main image, max 10 images)</div>
+                        
+                        <!-- Image preview area -->
+                        <div id="image-preview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                        
+                        <!-- Hidden inputs for Cloudinary URLs -->
+                        <input type="hidden" name="imageUrls" id="image-urls">
                     </div>
                 </div>
             </div>
@@ -331,4 +339,128 @@
     font-size: 0.875rem;
     color: #6c757d;
 }
+
+.image-preview-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.image-preview-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+.remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.image-preview-item-wrapper {
+    position: relative;
+}
 </style>
+
+<!-- Cloudinary Upload Widget -->
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cloudName = 'dzngjsqpe';
+    const uploadPreset = 'kadis_products';
+    
+    const imageUrlsInput = document.getElementById('image-urls');
+    const imagePreview = document.getElementById('image-preview');
+    let uploadedImages = [];
+    
+    // Initialize Cloudinary widget
+    const widget = cloudinary.createUploadWidget({
+        cloudName: cloudName,
+        uploadPreset: uploadPreset,
+        sources: ['local', 'url', 'camera', 'instagram', 'facebook'],
+        multiple: true,
+        maxFiles: 10,
+        clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        maxImageFileSize: 5000000, // 5MB
+        cropping: false,
+        showSkipCropButton: true,
+        styles: {
+            palette: {
+                window: '#1a1a2e',
+                windowBorder: '#667eea',
+                tabIcon: '#667eea',
+                menuIcons: '#667eea',
+                textDark: '#1a1a2e',
+                textLight: '#ffffff',
+                link: '#667eea',
+                action: '#667eea',
+                inactiveTabIcon: '#6c757d',
+                error: '#dc3545',
+                inProgress: '#667eea',
+                complete: '#28a745',
+                sourceBg: '#f8f9fa'
+            }
+        }
+    }, function(error, result) {
+        if (!error && result && result.event === "success") {
+            console.log('Upload successful:', result.info);
+            
+            // Add the uploaded image URL to our array
+            uploadedImages.push(result.info.secure_url);
+            
+            // Update the hidden input
+            imageUrlsInput.value = JSON.stringify(uploadedImages);
+            
+            // Update preview
+            renderImagePreview();
+        }
+    });
+    
+    // Open widget on button click
+    document.getElementById('upload-widget').addEventListener('click', function() {
+        widget.open();
+    });
+    
+    function renderImagePreview() {
+        imagePreview.innerHTML = uploadedImages.map((url, index) => `
+            <div class="image-preview-item-wrapper">
+                <button type="button" class="remove-image" onclick="removeImage(${index})">&times;</button>
+                <div class="image-preview-item">
+                    <img src="${url}" alt="Upload ${index + 1}" onerror="this.src='/images/placeholder.png'">
+                    <small class="text-muted">${index === 0 ? 'Main' : '#' + (index + 1)}</small>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Make removeImage globally available
+    window.removeImage = function(index) {
+        uploadedImages.splice(index, 1);
+        imageUrlsInput.value = JSON.stringify(uploadedImages);
+        renderImagePreview();
+    };
+    
+    // Handle form submission - convert image URLs to hidden inputs
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        if (uploadedImages.length > 0) {
+            // Ensure imageUrls is an array input
+            imageUrlsInput.value = JSON.stringify(uploadedImages);
+        }
+    });
+});
+</script>

@@ -706,6 +706,19 @@ footer::before {
     text-align: center;
 }
 
+.developer-credit {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--light-gray);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.developer-credit:hover {
+    opacity: 1;
+    color: var(--gold);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
